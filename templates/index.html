@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Budget Tracker
+{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">Welcome to Budget Tracker</h1>
+    <p class="lead">Track your income and expenses efficiently.</p>
+    <hr class="my-4">
+    <p>If you already have an account, please log in. If not, register now to get started!</p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('login') }}" role="button">Login</a>
+    <a class="btn btn-secondary btn-lg" href="{{ url_for('register') }}" role="button">Register</a>
+</div>
+{% endblock %}
