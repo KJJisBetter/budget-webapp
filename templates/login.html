@@ -5,16 +5,13 @@ Register - Budget Tracker
 {% endblock %}
 
 {% block content %}
-<form action="/register" method="post">
+<form action="/login" method="post">
     <div class="mb-3">
         <input type="email" class="form-control" name="email" placeholder="Enter your email">
     </div>
     <div class="mb-3">
         <input type="password" class="form-control" name="password" placeholder="Enter your password">
     </div>
-    <div class="mb-3">
-        <input type="password" class="form-control" name="confirm-password" placeholder="Confirm your password">
-    </div>
-    <button type="submit" class="btn btn-primary">Register</button>
+    <button type="submit" class="btn btn-primary">Log In</button>
 </form>
 {% endblock %}

@@ -1,11 +1,11 @@
-from flask import Flask, request, redirect, render_template, flash
-from flask_login import LoginManager, login_user, login_required, logout_user
+from flask import Flask, request, redirect, render_template, flash, session
 from config import DevelopmentConfig, ProductionConfig
 from supabase import create_client
+from gotrue.errors import AuthApiError
 import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.secret_key = app.config['SECRET_KEY']
 
 if os.environ.get('FLASK_ENV') == 'production':
     app.config.from_object(ProductionConfig)
@@ -14,19 +14,11 @@ else:
 
 
 # Supabase client = database connection
-supabase = create_client(app.config['SUPABASE_URL'], app.config['SUPABASE_KEY'])
+URL = app.config['SUPABASE_URL']
+KEY = app.config['SUPABASE_KEY']
+supabase = create_client(URL, KEY)
 
-
-# Login Manager
-login_manager = LoginManager()
-login_manager.init_app(app)
-
-@login_manager.user_loader
-def load_user(user_id):
-    user = supabase.auth.get_user(user_id)
-    if user:
-        return user.id
-    return None
+session = supabase.auth.get_session()
 
 # Index route
 @app.route('/')
@@ -37,21 +29,43 @@ def index():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        confimation = request.form['confirmation']
+        # print(request.form)
 
-        if password != confimation:
-            return flash('Passwords do not match')
-        else:
-            supabase.auth.sign_up(email, password)
-            return redirect('/login')
+        email_address = request.form.get('email')
+        password = request.form.get('password')
+        confirmation = request.form.get('confirm-password')
+
+        if password != confirmation:
+            flash('Passwords do not match')
+            return redirect('/register')
+        
+        credentials = {
+            'email': email_address,
+            'password': password,
+        }
+
+        try:
+            supabase.auth.sign_up(credentials)
+        except AuthApiError as error:
+            flash(error.message)
+            return redirect('/register')
         
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    return 'login goes here'
+    if request.method == 'POST':
+        email_address = request.form.get('email')
+        password = request.form.get('password')
+
+        credentials = {
+            'email': email_address,
+            'password': password,
+        }
+
+        session = supabase.auth.sign_in_with_password(credentials)
+        
+    return render_template('login.html')
 
 
 if __name__ == '__main__':
